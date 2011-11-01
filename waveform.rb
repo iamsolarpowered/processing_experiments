@@ -1,8 +1,7 @@
-class Speakers < Processing::App
+class Waveform < Processing::App
 
   load_library 'minim'
   import 'ddf.minim'
-  
 
   def setup
     frame_rate 30
@@ -11,19 +10,21 @@ class Speakers < Processing::App
   end
   
   def draw
-    background(255)
+    background(0) # Erase last frame
     draw_lines
   end
   
   def draw_lines
-    @song.buffer_size.times do |i| 
+    @song.buffer_size.times do |i|
+      # next unless i % 4 == 0
       draw_line(get_volume(:left, i), i)
-      draw_line(get_volume(:right, i), i)
+      draw_line(get_volume(:right, i), i, 1)
     end
   end
   
-  def draw_line(height, offset)
-    height = 50 + (height * 50) # make it bigger!
+  def draw_line(height, offset, line=0, color=127)
+    stroke(color)
+    height = (50 + (height * 75)) + (50 * line)
     line(offset, height, offset + 1, height)
   end
   
@@ -34,5 +35,5 @@ class Speakers < Processing::App
 
 end
 
-Speakers.new :title => "Hi :)", :width => 800, :height => 600
+Waveform.new :title => "Waveform Thingy", :width => 1024, :height => 150
 
