@@ -2,38 +2,55 @@ class Waveform < Processing::App
 
   load_library 'minim'
   import 'ddf.minim'
+  
+  BUFFER_SIZE = 1024
+  SONGS = Dir["/home/ben/Music/*.mp3"]
 
   def setup
+    size 1024, 150
     frame_rate 30
-    minim = Minim.new(self)
-    @song = minim.get_line_in
+    
+    @color_array = [255, 255, 0]
+    @color = color(*@color_array) 
+    stroke @color
+    fill @color
+    
+    @font = load_font "Ziggurat-HTF-Black-32.vlw"
+    text_font @font, 32
+    
+    @minim = Minim.new(self)
   end
   
   def draw
     background(0) # Erase last frame
-    draw_lines
+    play_random_song unless @song && @song.is_playing
+    text @title, 10, 140
+    draw_channel(:left)
+    draw_channel(:right, 1)
   end
   
-  def draw_lines
-    @song.buffer_size.times do |i|
-      # next unless i % 4 == 0
-      draw_line(get_volume(:left, i), i)
-      draw_line(get_volume(:right, i), i, 1)
+  def draw_channel(channel, line=0)
+    @song.send(channel).to_array.each_with_index do |sample, i|
+      draw_line(sample, i, line)
     end
   end
   
-  def draw_line(height, offset, line=0, color=127)
-    stroke(color)
+  def draw_line(height, offset, line=0)
+    alpha = (-255 * height) + 32
+    stroke(*[@color_array, alpha].flatten)
     height = (50 + (height * 75)) + (50 * line)
     line(offset, height, offset + 1, height)
   end
   
-  
-  def get_volume(channel, sample)
-    @song.send(channel).get(sample)
+  def play_random_song
+    @song = @minim.load_file(SONGS[rand(SONGS.length)], BUFFER_SIZE)
+    if data = @song.get_meta_data rescue false
+      @title = "#{data.title} by #{data.author}"
+    end
+    @song.play
   end
 
 end
 
-Waveform.new :title => "Waveform Thingy", :width => 1024, :height => 150
+Waveform.new :title => "Waveform Thingy"
 
