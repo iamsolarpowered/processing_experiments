@@ -1,5 +1,6 @@
 class Waveform < Processing::App
 
+  load_library 'control_panel'
   load_library 'minim'
   import 'ddf.minim'
   
@@ -10,19 +11,24 @@ class Waveform < Processing::App
     size 1024, 150
     frame_rate 30
     
-    @color_array = [255, 255, 0]
-    @color = color(*@color_array) 
-    stroke @color
-    fill @color
+    color_mode HSB, 100
     
     @font = load_font "Ziggurat-HTF-Black-32.vlw"
     text_font @font, 32
     
     @minim = Minim.new(self)
+    
+    control_panel do |c|
+      c.slider :hue, 0..100, 16
+      c.slider :saturation, 0..100, 85
+      c.slider :brightness, 0..100, 85
+    end
   end
   
   def draw
     background(0) # Erase last frame
+    stroke @hue, @saturation, @brightness
+    fill @hue, @saturation, @brightness
     play_random_song unless @song && @song.is_playing
     text @title, 10, 140
     draw_channel(:left)
@@ -36,8 +42,8 @@ class Waveform < Processing::App
   end
   
   def draw_line(height, offset, line=0)
-    alpha = (-255 * height) + 32
-    stroke(*[@color_array, alpha].flatten)
+    # alpha = (-255 * height) + 32
+    # stroke(@hue, @saturation, @brightness)
     height = (50 + (height * 75)) + (50 * line)
     line(offset, height, offset + 1, height)
   end
